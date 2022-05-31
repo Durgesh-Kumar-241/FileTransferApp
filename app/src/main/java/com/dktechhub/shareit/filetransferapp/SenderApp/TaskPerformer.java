@@ -7,6 +7,7 @@ import android.util.Log;
 import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
 import com.dktechhub.shareit.filetransferapp.SharedItem;
 import com.dktechhub.shareit.filetransferapp.ui.main.ItemStateChangeListener;
+import com.dktechhub.shareit.filetransferapp.ui.main.LocalPathProvider;
 import com.dktechhub.shareit.filetransferapp.ui.main.ShareState;
 
 import java.io.BufferedReader;
@@ -93,12 +94,8 @@ public class TaskPerformer extends Thread{
             Log.d(TAG,"Responce code :"+responseCode+" headers"+responceHeaders);
             if(responseCode==200)
             {
-                File f = new File(Environment.getExternalStorageDirectory(),"File trnasfer App/");
-                if(!(f.isDirectory()||f.mkdirs()))
-                {
-                    throw new FileNotFoundException("Storage permission error");
-                }
-                FileOutputStream fileOutputStream = new FileOutputStream(new File(f,sharedItem.name));
+
+                FileOutputStream fileOutputStream = (FileOutputStream) LocalPathProvider.getOut(sharedItem);
                 //sharedItem.uri = Uri.fromFile()
                 long max = sharedItem.size;
                 long downloaded =0;
@@ -147,7 +144,7 @@ public class TaskPerformer extends Thread{
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             outputStream.write(("POST /item?id="+sharedItem.id+" HTTP/1.1\r\n").getBytes());
             outputStream.write(("Content-Length: "+ sharedItem.size +"\r\n\r\n").getBytes());
-            InputStream inputStream1 = itemStateChangeListener.getContentResolver().openInputStream(sharedItem.uri);
+            InputStream inputStream1 = LocalPathProvider.getInputStream(sharedItem);
             long max = sharedItem.size;
             long uploaded =0;
             int read = 0;

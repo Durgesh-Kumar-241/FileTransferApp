@@ -3,6 +3,7 @@ package com.dktechhub.shareit.filetransferapp.ui.main;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -60,6 +61,8 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter=new RecyclerViewAdapter(sender);
         recyclerView.setAdapter(adapter);
+        LocalPathProvider.initialize(getActivity().getContentResolver(), this::getContext);
+
         if(sender)
         {
             SenderApp instance = SenderApp.getInstance();

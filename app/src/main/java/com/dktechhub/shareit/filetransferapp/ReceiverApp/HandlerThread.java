@@ -112,7 +112,8 @@ public class HandlerThread extends Thread{
 
             Log.d(TAG,"Requested item name: "+recyclerViewAdapter.items.get(index).name);
             long max = recyclerViewAdapter.items.get(index).size;
-            FileInputStream fileInputStream = (FileInputStream) handlerInterface.getContentResolver().openInputStream(recyclerViewAdapter.items.get(index).uri);
+
+            FileInputStream fileInputStream = (FileInputStream) LocalPathProvider.getInputStream(recyclerViewAdapter.items.get(index));
             outputStream.write("HTTP/1.1 200\r\n\r\n".getBytes());
             long written =0;
             int read =0;
@@ -169,17 +170,12 @@ public class HandlerThread extends Thread{
 
             Log.d(TAG,"Requested item name: "+recyclerViewAdapter.items.get(index).name);
             long max = recyclerViewAdapter.items.get(index).size;
-            File parent = new File(Environment.getExternalStorageDirectory(),"Shared content");
-            if(!(parent.isDirectory()&&parent.canWrite()||parent.mkdirs()))
+            FileOutputStream foutputStream = (FileOutputStream) LocalPathProvider.getOut(recyclerViewAdapter.items.get(index));
+            if(outputStream==null)
             {
-                {
-                    newSimpleResponse(404);
-                    Log.d(TAG,"file create error");
-                    return;
-                }
+                newSimpleResponse(404);
+                return;
             }
-            File f = new File(parent,recyclerViewAdapter.items.get(index).name);
-            FileOutputStream fileOutputStream = new FileOutputStream(f);
             long written =0;
             int read =0;
             byte[] bytes = new byte[1024*1000];
@@ -187,15 +183,15 @@ public class HandlerThread extends Thread{
             while ((written<max)&&(read=inputStream.read(bytes))>0)
             {
                 written+=read;
-                fileOutputStream.write(bytes,0,read);
+                foutputStream.write(bytes,0,read);
                 recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));;
                 notifyAdapter(index);
                 //Log.d(TAG,"File received"+written+"/"+max);
             }
 
             Log.d(TAG,"completed receiving..");
-            fileOutputStream.flush();
-            fileOutputStream.close();
+            foutputStream.flush();
+            foutputStream.close();
 
             recyclerViewAdapter.items.get(index).shareState=ShareState.COMPLETED;
             notifyAdapter(index);
