@@ -1,0 +1,211 @@
+package com.dktechhub.shareit.filetransferapp.SenderApp;
+
+import android.net.Uri;
+import android.os.Environment;
+import android.util.Log;
+
+import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
+import com.dktechhub.shareit.filetransferapp.SharedItem;
+import com.dktechhub.shareit.filetransferapp.ui.main.ItemStateChangeListener;
+import com.dktechhub.shareit.filetransferapp.ui.main.ShareState;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+
+public class TaskPerformer extends Thread{
+    private final String remote;
+    ItemStateChangeListener itemStateChangeListener;
+    SharedItem sharedItem;
+    boolean isCancelled = false;
+    String TAG = "TaskPerformer_Tag";
+    boolean success = true;
+    int index;
+    public void cancel()
+    {
+        isCancelled=true;
+        notifyCancelled();
+    }
+   public TaskPerformer(ItemStateChangeListener itemStateChangeListener, SharedItem sharedItem,int index,String remote)
+    {
+        this.itemStateChangeListener = itemStateChangeListener;
+        this.sharedItem=sharedItem;
+        this.remote=remote;
+        this.index=index;
+    }
+
+    @Override
+    public void run() {
+        super.run();
+        Log.d(TAG,"running task performer");
+        if(sharedItem==null||(sharedItem.outGoing&&sharedItem.uri==null))
+            notifyTaskCompleted(false);
+        else if(sharedItem.shareState==ShareState.CANCELLED)
+        {
+            notifyTaskCompleted(false);
+            return;
+        }
+        else if(sharedItem.outGoing)
+        {
+            postItem();
+        }else {
+            getItem();
+        }
+
+        notifyTaskCompleted(success);
+        Log.d(TAG,"Finished task performer");
+    }
+
+    HashMap<String,String> responceHeaders = new HashMap<>();
+
+    private void getItem() {
+
+        try{
+            Socket s = new Socket(remote,2004);
+            InputStream inputStream=s.getInputStream();
+            OutputStream outputStream = s.getOutputStream();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            outputStream.write(("GET /item?id="+sharedItem.id+" HTTP/1.1\r\n").getBytes());
+            outputStream.write(("Content-Length: "+String.valueOf(sharedItem.size)+"\r\n").getBytes());
+            outputStream.write("\r\n".getBytes());
+            //String res = bufferedReader.readLine();
+            String header;
+            int temp;
+            header = bufferedReader.readLine();
+            System.out.println(header);
+            int responseCode = Integer.parseInt(header.substring(header.indexOf(' ')+1,header.indexOf(' ')+4));
+            // System.out.println(responseCode);
+            while ((header = bufferedReader.readLine()).length() != 0) {
+                if (header.contains(":")) {
+                    temp = header.indexOf(':');
+                    responceHeaders.put(header.substring(0, temp), header.substring(temp + 2));
+                }
+                System.out.println(header);
+            }
+            Log.d(TAG,"Responce code :"+responseCode+" headers"+responceHeaders);
+            if(responseCode==200)
+            {
+                File f = new File(Environment.getExternalStorageDirectory(),"File trnasfer App/");
+                if(!(f.isDirectory()||f.mkdirs()))
+                {
+                    throw new FileNotFoundException("Storage permission error");
+                }
+                FileOutputStream fileOutputStream = new FileOutputStream(new File(f,sharedItem.name));
+                //sharedItem.uri = Uri.fromFile()
+                long max = sharedItem.size;
+                long downloaded =0;
+                int read = 0;
+                byte[] buffer=new byte[1024*1000];
+                while ((read = inputStream.read(buffer)) > 0&&!isCancelled) {
+
+                    downloaded += read;
+                    fileOutputStream.write(buffer,0, read);
+                    sharedItem.progress=((int)(downloaded*100 / max));
+                    Log.d(TAG,downloaded+"/"+max);
+                    notifyItemChanged();
+                }
+                if(isCancelled)
+                {
+                    sharedItem.shareState=ShareState.CANCELLED;
+                }else {
+                    sharedItem.progress=100;
+                    sharedItem.shareState=ShareState.COMPLETED;
+                }
+
+                notifyItemChanged();
+                inputStream.close();
+                Log.d(TAG,"Downloaded file completely");
+                //  System.out.println("Received File");
+                fileOutputStream.flush();
+                fileOutputStream.close();
+                outputStream.close();
+            }else throw new Exception("Invalid request");
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            success =false;
+            sharedItem.shareState= ShareState.FAILED;notifyItemChanged();notifyTaskCompleted(false);
+        }
+
+
+    }
+
+    private void postItem() {
+        try{
+            Socket s = new Socket(remote,2004);
+            InputStream inputStream=s.getInputStream();
+            OutputStream outputStream = s.getOutputStream();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            outputStream.write(("POST /item?id="+sharedItem.id+" HTTP/1.1\r\n").getBytes());
+            outputStream.write(("Content-Length: "+ sharedItem.size +"\r\n\r\n").getBytes());
+            InputStream inputStream1 = itemStateChangeListener.getContentResolver().openInputStream(sharedItem.uri);
+            long max = sharedItem.size;
+            long uploaded =0;
+            int read = 0;
+            byte[] buffer=new byte[1024*1000];
+            while ((read = inputStream1.read(buffer)) > 0) {
+
+                uploaded += read;
+                outputStream.write(buffer,0, read);
+                sharedItem.progress=((int)(uploaded*100 / max));
+                Log.d(TAG,uploaded+"/"+max);
+                notifyItemChanged();
+            }
+            Log.d(TAG,"upload finished");
+            inputStream1.close();
+            //outputStream.write("\r\n".getBytes());
+
+            String header;
+            int temp;
+            header = bufferedReader.readLine();
+            System.out.println(header);
+            int responseCode = Integer.parseInt(header.substring(header.indexOf(' ')+1,header.indexOf(' ')+4));
+            // System.out.println(responseCode);
+            while ((header = bufferedReader.readLine()).length() != 0) {
+                if (header.contains(":")) {
+                    temp = header.indexOf(':');
+                    responceHeaders.put(header.substring(0, temp), header.substring(temp + 2));
+                }
+                System.out.println(header);
+            }
+            Log.d(TAG,"Responce code :"+responseCode+" headers"+responceHeaders);
+
+            if(isCancelled)
+            {
+                sharedItem.shareState=ShareState.CANCELLED;
+            }else if(responseCode==200){
+                sharedItem.progress=100;
+                sharedItem.shareState=ShareState.COMPLETED;
+            }
+            notifyItemChanged();
+            outputStream.close();
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            sharedItem.shareState=ShareState.FAILED;
+            notifyItemChanged();
+        }
+    }
+
+    void notifyCancelled()
+    {
+        BackgroudToUIRunner.runOnUiThread(() -> itemStateChangeListener.onTaskCancelled());
+    }
+    void notifyTaskCompleted(boolean success)
+    {
+        BackgroudToUIRunner.runOnUiThread(() -> itemStateChangeListener.onTaskCompleted(success));
+    }
+    void notifyItemChanged()
+    {
+        BackgroudToUIRunner.runOnUiThread(() -> itemStateChangeListener.onItemChanged(index));
+    }
+}
