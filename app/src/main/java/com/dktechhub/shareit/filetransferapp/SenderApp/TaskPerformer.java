@@ -1,7 +1,5 @@
 package com.dktechhub.shareit.filetransferapp.SenderApp;
 
-import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
 import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
@@ -12,15 +10,12 @@ import com.dktechhub.shareit.filetransferapp.ui.main.LocalPathProvider;
 import com.dktechhub.shareit.filetransferapp.ui.main.ShareState;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
