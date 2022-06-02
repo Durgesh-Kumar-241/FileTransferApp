@@ -61,10 +61,10 @@ public class SenderFragment extends Fragment {
         progressDialog.show();
         new ConnectThread(remote, new ConnectThread.ConnecterInterface() {
             @Override
-            public void onConnectionSuccess() {
+            public void onConnectionSuccess(String device) {
                 //Toast.makeText(getContext(), "Connected successfully", Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
-                transferStateInterface.onConnectionSuccess(remote);
+                transferStateInterface.onConnectionSuccess(remote, device);
             }
 
             @Override

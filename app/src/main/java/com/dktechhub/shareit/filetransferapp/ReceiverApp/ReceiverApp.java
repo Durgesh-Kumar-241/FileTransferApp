@@ -71,14 +71,10 @@ public class ReceiverApp {
                     return ReceiverApp.this.recyclerViewAdapter;
                 }
 
-                @Override
-                public ContentResolver getContentResolver() {
-                    return contentResolver;
-                }
 
                 @Override
-                public int addNewDevice(String remote) {
-                    return ReceiverApp.this.addNewDevice(remote);
+                public int addNewDevice(String remote, String device) {
+                    return ReceiverApp.this.addNewDevice(remote,device);
                 }
             });
             mainThread.start();
@@ -94,7 +90,7 @@ public class ReceiverApp {
 
     //onNewConnectionRequest()
 
-    int addNewDevice(String remote){
+    int addNewDevice( String remote,String device){
         Log.d("ReceiverApp",remote+" requested");
         if(allowedDevices.contains(remote))
             return 1;
@@ -108,14 +104,14 @@ public class ReceiverApp {
                 @Override
                 public void run() {
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setMessage("A device wants to connect.. allow?");
+                    builder.setMessage(device+" wants to connect.. allow?");
                     builder.setCancelable(false);
                     builder.setPositiveButton("Allow", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             allowedDevices.add(remote);
-                            transferStateInterface.onConnectionSuccess(null);
+                            transferStateInterface.onConnectionSuccess(null,device);
                         }
                     });
                     builder.setNegativeButton("Reject", new DialogInterface.OnClickListener() {

@@ -1,6 +1,7 @@
 package com.dktechhub.shareit.filetransferapp.SenderApp;
 
 import android.content.ContentResolver;
+import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
@@ -22,6 +23,7 @@ public class SenderApp {
     TaskPerformer t;
     WorkerThread.WorkerInterface workerInterface;
     RecyclerViewAdapter recyclerViewAdapter;
+    public static String deviceName=Build.DEVICE;
     String remote;
     Queue<Pair<SharedItem,Integer>> tasks=new LinkedList<>();
     ContentResolver contentResolver;

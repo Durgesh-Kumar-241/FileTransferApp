@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.dktechhub.shareit.filetransferapp.R;
 import com.dktechhub.shareit.filetransferapp.ReceiverApp.ReceiverApp;
@@ -28,18 +29,22 @@ import com.dktechhub.shareit.filetransferapp.SharedItem;
 import java.util.ArrayList;
 
 public class TransferScreenFragment extends Fragment implements RemoreFilesInterface{
+    private final String device;
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
     boolean sender;
     String remote;
-    public TransferScreenFragment(boolean sender,String remote) {
+    public TransferScreenFragment(boolean sender, String remote, String device) {
     this.sender=sender;
     this.remote=remote;
+    this.device=device;
     }
 
-    public static TransferScreenFragment newInstance(boolean sender,String remote) {
-        return new TransferScreenFragment(sender,remote);
+    public static TransferScreenFragment newInstance(boolean sender,String remote,String device) {
+        return new TransferScreenFragment(sender,remote,device);
     }
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,7 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
                 pickFiles();
             }
         });
+        ((TextView)root.findViewById(R.id.rem_dev_name)).setText("Connected to "+device);
         recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter=new RecyclerViewAdapter(sender);

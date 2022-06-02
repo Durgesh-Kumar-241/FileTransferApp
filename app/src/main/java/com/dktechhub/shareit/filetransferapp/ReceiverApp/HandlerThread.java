@@ -1,11 +1,10 @@
 package com.dktechhub.shareit.filetransferapp.ReceiverApp;
 
 import android.content.ContentResolver;
-import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 
 import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
+import com.dktechhub.shareit.filetransferapp.SenderApp.SenderApp;
 import com.dktechhub.shareit.filetransferapp.SharedItem;
 import com.dktechhub.shareit.filetransferapp.ui.main.FileConverter;
 import com.dktechhub.shareit.filetransferapp.ui.main.LocalPathProvider;
@@ -14,10 +13,8 @@ import com.dktechhub.shareit.filetransferapp.ui.main.RemoreFilesInterface;
 import com.dktechhub.shareit.filetransferapp.ui.main.ShareState;
 
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -255,12 +252,13 @@ public class HandlerThread extends Thread{
     }
 
     private void handleConnectionRequest() {
-        int i=handlerInterface.addNewDevice(socket.getInetAddress().getHostAddress());
+        int i=handlerInterface.addNewDevice(socket.getInetAddress().getHostAddress(),requestHeaders.get("Device"));
         Log.d(TAG,"current status ="+i);
         try{
             if(i==1)
             {
-                outputStream.write("HTTP/1.1 OK\r\n\r\n".getBytes());
+                outputStream.write("HTTP/1.1 OK\r\n".getBytes());
+                outputStream.write(("Device: "+ SenderApp.deviceName+"\r\n\r\n").getBytes());
             }else if(i==0)
             {
                 outputStream.write("HTTP/1.1 UNAUTHORISED\r\n\r\n".getBytes());
@@ -311,8 +309,7 @@ public class HandlerThread extends Thread{
         //Context getContext();
         ArrayList<SharedItem> getItemsList();
         RecyclerViewAdapter getAdapter();
-        ContentResolver getContentResolver();
-        int addNewDevice(String remote);
+        int addNewDevice(String remote, String device);
     }
 
     void publishNewItems(ArrayList<SharedItem> sharedItems)

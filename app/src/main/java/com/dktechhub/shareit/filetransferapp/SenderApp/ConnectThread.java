@@ -47,6 +47,7 @@ public class ConnectThread extends Thread{
             InputStream inputStream = socket.getInputStream();
             OutputStream outputStream = socket.getOutputStream();
             outputStream.write("CONNECT / HTTP/1.1\r\n".getBytes());
+            outputStream.write(("Device: "+SenderApp.deviceName+"\r\n").getBytes());
             outputStream.write("\r\n".getBytes());
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -54,10 +55,14 @@ public class ConnectThread extends Thread{
             String res = bufferedReader.readLine();
             Log.d(TAG,res);
             if(res.equals("HTTP/1.1 OK"))
-            {
+            {   res = bufferedReader.readLine();
+                String device = "";
+                if (res.contains(":")) {
+                     device=res.substring(res.indexOf(':') + 2);
+                }
                 if(connecterInterface!=null)
                 {
-                    callSuccess();
+                    callSuccess(device);
                     cancelled = true;
                 }
             }else if(res.equals("HTTP/1.1 UNAUTHORISED")) {
@@ -76,9 +81,9 @@ public class ConnectThread extends Thread{
             e.printStackTrace();        }
     }
 
-    void callSuccess()
+    void callSuccess(String device)
     {
-        BackgroudToUIRunner.runOnUiThread(() -> connecterInterface.onConnectionSuccess());
+        BackgroudToUIRunner.runOnUiThread(() -> connecterInterface.onConnectionSuccess(device));
     }
     void callFailed(String msg)
     {
@@ -91,7 +96,7 @@ public class ConnectThread extends Thread{
     }
 
     public interface ConnecterInterface{
-        void onConnectionSuccess();
+        void onConnectionSuccess(String device);
         void onConnectionFailed(String message);
         void onProgress(int progress);
     }

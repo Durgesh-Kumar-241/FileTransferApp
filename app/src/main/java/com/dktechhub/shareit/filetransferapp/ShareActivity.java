@@ -43,11 +43,11 @@ public class ShareActivity extends AppCompatActivity implements TransferStateInt
     }
 
     @Override
-    public void onConnectionSuccess(String remote) {
+    public void onConnectionSuccess(String remote, String device) {
         if(getSupportActionBar()!=null)
             getSupportActionBar().hide();
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, TransferScreenFragment.newInstance(sender,remote)).commitNow();
+                .replace(R.id.container, TransferScreenFragment.newInstance(sender,remote,device)).commitNow();
         isActive = true;
     }
 
