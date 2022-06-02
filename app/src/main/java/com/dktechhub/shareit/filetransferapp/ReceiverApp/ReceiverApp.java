@@ -76,6 +76,11 @@ public class ReceiverApp {
                 public int addNewDevice(String remote, String device) {
                     return ReceiverApp.this.addNewDevice(remote,device);
                 }
+
+                @Override
+                public void onConnectionSuccess(String device) {
+                    notifyNewConnection(device);
+                }
             });
             mainThread.start();
             mainThread.setRemoreFilesInterface(remoreFilesInterface);
@@ -89,6 +94,16 @@ public class ReceiverApp {
     }
 
     //onNewConnectionRequest()
+
+    void notifyNewConnection(String device)
+    {
+        BackgroudToUIRunner.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                transferStateInterface.onConnectionSuccess(null,device);
+            }
+        });
+    }
 
     int addNewDevice( String remote,String device){
         Log.d("ReceiverApp",remote+" requested");
@@ -111,7 +126,6 @@ public class ReceiverApp {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                             allowedDevices.add(remote);
-                            transferStateInterface.onConnectionSuccess(null,device);
                         }
                     });
                     builder.setNegativeButton("Reject", new DialogInterface.OnClickListener() {

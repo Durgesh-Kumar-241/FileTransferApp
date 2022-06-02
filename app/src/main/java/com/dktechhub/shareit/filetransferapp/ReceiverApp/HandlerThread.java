@@ -6,6 +6,7 @@ import android.util.Log;
 import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
 import com.dktechhub.shareit.filetransferapp.SenderApp.SenderApp;
 import com.dktechhub.shareit.filetransferapp.SharedItem;
+import com.dktechhub.shareit.filetransferapp.ui.main.Crypto;
 import com.dktechhub.shareit.filetransferapp.ui.main.FileConverter;
 import com.dktechhub.shareit.filetransferapp.ui.main.LocalPathProvider;
 import com.dktechhub.shareit.filetransferapp.ui.main.RecyclerViewAdapter;
@@ -250,20 +251,41 @@ public class HandlerThread extends Thread{
         }
 
     }
-
+    boolean isSecretAvailable = false;
     private void handleConnectionRequest() {
         int i=handlerInterface.addNewDevice(socket.getInetAddress().getHostAddress(),requestHeaders.get("Device"));
+        if(!isSecretAvailable)
+        {
+            String encrptedSecret = requestHeaders.get("Secret");
+            Log.d(TAG,"Enctrypeted secret received\n"+encrptedSecret);
+            if(encrptedSecret!=null&&encrptedSecret.length()>0)
+            {
+                try {
+                    Crypto.decryptSecretKey(encrptedSecret);
+                    isSecretAvailable = true;
+                    Log.d(TAG,"Obtained secret key");
+                }catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
         Log.d(TAG,"current status ="+i);
         try{
-            if(i==1)
+            if(i==1&&isSecretAvailable)
             {
                 outputStream.write("HTTP/1.1 OK\r\n".getBytes());
                 outputStream.write(("Device: "+ SenderApp.deviceName+"\r\n\r\n").getBytes());
+                handlerInterface.onConnectionSuccess(requestHeaders.get("Device"));
+
             }else if(i==0)
             {
                 outputStream.write("HTTP/1.1 UNAUTHORISED\r\n\r\n".getBytes());
             }else {
-                outputStream.write("HTTP/1.1 WAIT\r\n\r\n".getBytes());
+                outputStream.write("HTTP/1.1 WAIT\r\n".getBytes());
+                outputStream.write(("Public: "+ Crypto.serverPublic+"\r\n\r\n").getBytes());
+                Log.d(TAG,"Sent server public\n"+Crypto.serverPublic);
+
             }
             Log.d(TAG,"Responded : "+ i);
         }catch (Exception e)
@@ -287,6 +309,8 @@ public class HandlerThread extends Thread{
                 this.requestHeaders.put(header.substring(0, temp), header.substring(temp + 2));
             }
         }
+
+        Log.d(TAG,requestHeaders.toString());
     }
 
     void onDestroy()
@@ -310,6 +334,7 @@ public class HandlerThread extends Thread{
         ArrayList<SharedItem> getItemsList();
         RecyclerViewAdapter getAdapter();
         int addNewDevice(String remote, String device);
+        void onConnectionSuccess(String device);
     }
 
     void publishNewItems(ArrayList<SharedItem> sharedItems)

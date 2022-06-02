@@ -2,11 +2,13 @@ package com.dktechhub.shareit.filetransferapp.ReceiverApp;
 
 import android.util.Log;
 
+import com.dktechhub.shareit.filetransferapp.ui.main.Crypto;
 import com.dktechhub.shareit.filetransferapp.ui.main.RecyclerViewAdapter;
 import com.dktechhub.shareit.filetransferapp.ui.main.RemoreFilesInterface;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.security.NoSuchAlgorithmException;
 
 public class MainThread extends Thread{
     public boolean isRunning = true;
@@ -30,6 +32,11 @@ public class MainThread extends Thread{
     @Override
     public void run() {
         super.run();
+        try {
+            Crypto.iniServerKeys();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         while (isRunning)
         {
             listen();
