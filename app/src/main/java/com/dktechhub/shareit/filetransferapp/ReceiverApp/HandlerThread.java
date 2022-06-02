@@ -26,8 +26,13 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
 
 public class HandlerThread extends Thread{
     private final Socket socket;
@@ -111,12 +116,13 @@ public class HandlerThread extends Thread{
             Log.d(TAG,"Requested item name: "+recyclerViewAdapter.items.get(index).name);
             long max = recyclerViewAdapter.items.get(index).size;
 
-            FileInputStream fileInputStream = (FileInputStream) LocalPathProvider.getInputStream(recyclerViewAdapter.items.get(index));
+            InputStream fileInputStream =  LocalPathProvider.getInputStream(recyclerViewAdapter.items.get(index));
+            CipherInputStream cipherInputStream = Crypto.getEncryptedFile(fileInputStream);
             outputStream.write("HTTP/1.1 200\r\n\r\n".getBytes());
             long written =0;
             int read =0;
             byte[] bytes = new byte[1024*1000];
-            while ((read=fileInputStream.read(bytes))>0)
+            while ((read=cipherInputStream.read(bytes))>0)
             {
                 written+=read;
                 outputStream.write(bytes,0,read);
@@ -129,9 +135,14 @@ public class HandlerThread extends Thread{
             recyclerViewAdapter.items.get(index).shareState=ShareState.COMPLETED;
             notifyAdapter(index);
             fileInputStream.close();
-        } catch (IOException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException e) {
             e.printStackTrace();
-        }//respondText(404,"File not found");
+            newSimpleResponse(403);
+        }catch (IOException e)
+        {
+            //respondText(404,"File not found");
+        }
+
 
         onDestroy();
     }
@@ -178,7 +189,8 @@ public class HandlerThread extends Thread{
             int read =0;
             byte[] bytes = new byte[1024*1000];
             Log.d(TAG,"Started receiving....");
-            while ((written<max)&&(read=inputStream.read(bytes))>0)
+            CipherInputStream cipherInputStream = Crypto.getDecryptedFile(inputStream);
+            while (written<=max&&(read=cipherInputStream.read(bytes))>0)
             {
                 written+=read;
                 foutputStream.write(bytes,0,read);
@@ -196,13 +208,18 @@ public class HandlerThread extends Thread{
             Log.d(TAG,"completed receiving..");
             outputStream.write("HTTP/1.1 200\r\n\r\n".getBytes());
             outputStream.close();
+            cipherInputStream.close();
             inputStream.close();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             newSimpleResponse(404);
             Log.d(TAG,"file create error");
-        } catch (IOException e) {
+        } catch ( NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
+            e.printStackTrace();
+            newSimpleResponse(403);
+        }catch (IOException e)
+        {
             e.printStackTrace();
         }
 

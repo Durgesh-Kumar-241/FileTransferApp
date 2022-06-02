@@ -92,16 +92,20 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 holder1.status.setText(items.get(position).shareState.toString());
                 holder1.action.setText(s);
                 holder1.action.setTag(position);
+                holder1.size.setText(items.get(position).size2);
                 holder1.action.setOnClickListener(this);
 
 
             }else {
-                ((IncomingViewHolder)holder).name.setText(items.get(position).name);
-                ((IncomingViewHolder)holder).pbar.setProgress(items.get(position).progress);
-                ((IncomingViewHolder)holder).status.setText(items.get(position).shareState.toString());
-                ((IncomingViewHolder)holder).action.setText(s);
-                ((IncomingViewHolder)holder).action.setTag(position);
-                ((IncomingViewHolder)holder).action.setOnClickListener(this);
+                IncomingViewHolder holder1 = (IncomingViewHolder) holder;
+                holder1.size.setText(items.get(position).size2);
+                holder1.name.setText(items.get(position).name);
+                holder1.pbar.setProgress(items.get(position).progress);
+                holder1.status.setText(items.get(position).shareState.toString());
+                holder1.action.setText(s);
+
+                holder1.action.setTag(position);
+                holder1.action.setOnClickListener(this);
 
             }
     }

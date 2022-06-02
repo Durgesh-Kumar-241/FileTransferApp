@@ -1,7 +1,9 @@
 package com.dktechhub.shareit.filetransferapp.ui.main;
 
+import android.annotation.SuppressLint;
 import android.util.Base64;
 
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -14,6 +16,8 @@ import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
@@ -24,7 +28,6 @@ public class Crypto {
     private static KeyPair serverKP;
     public  static String serverPublic ="";
     private static SecretKey secretKey;
-    private SecretKey clientKey;
     public static void iniServerKeys() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
@@ -54,8 +57,16 @@ public class Crypto {
         secretKey = new SecretKeySpec(secBytes,0,secBytes.length,"AES");
     }
 
-    //MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDCyHAgnc6dlGCVuQZRhZYOGBMePJtbjdFs9v33QRC_fI_Fz6YHm7FfEdLmogVjIFWZNbWxo2hJ62LPIQki_DKxKKg9sUzoutC_EXTt3VxxWiOe9vhklPE4ac3DaPCIswMHWoUDW21rttyexoYRJvNw2TdpNb4zWRR7bYfb6fpj-QIDAQAB
-    //MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDCyHAgnc6dlGCVuQZRhZYOGBMePJtbjdFs9v33QRC_fI_Fz6YHm7FfEdLmogVjIFWZNbWxo2hJ62LPIQki_DKxKKg9sUzoutC_EXTt3VxxWiOe9vhklPE4ac3DaPCIswMHWoUDW21rttyexoYRJvNw2TdpNb4zWRR7bYfb6fpj-QIDAQAB
-    //MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDCyHAgnc6dlGCVuQZRhZYOGBMePJtbjdFs9v33QRC_fI_Fz6YHm7FfEdLmogVjIFWZNbWxo2hJ62LPIQki_DKxKKg9sUzoutC_EXTt3VxxWiOe9vhklPE4ac3DaPCIswMHWoUDW21rttyexoYRJvNw2TdpNb4zWRR7bYfb6fpj-QIDAQAB
+    public static CipherInputStream getEncryptedFile(InputStream fileInputStream) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        @SuppressLint("GetInstance") Cipher aes2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        aes2.init(Cipher.ENCRYPT_MODE,secretKey);
+        return new CipherInputStream(fileInputStream,aes2);
+    }
+
+    public static CipherInputStream getDecryptedFile(InputStream fileInputStream) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        @SuppressLint("GetInstance") Cipher aes2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        aes2.init(Cipher.DECRYPT_MODE,secretKey);
+        return new CipherInputStream(fileInputStream,aes2);
+    }
 
 }

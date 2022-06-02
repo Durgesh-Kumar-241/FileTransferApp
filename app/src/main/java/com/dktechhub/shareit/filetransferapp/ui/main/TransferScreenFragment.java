@@ -56,16 +56,12 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root= inflater.inflate(R.layout.fragment_transfer_screen, container, false);
-        root.findViewById(R.id.send_file).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pickFiles();
-            }
-        });
+        root.findViewById(R.id.send_file).setOnClickListener(v -> pickFiles());
         ((TextView)root.findViewById(R.id.rem_dev_name)).setText("Connected to "+device);
         recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter=new RecyclerViewAdapter(sender);
+        //adapter.setHasStableIds(true);
         recyclerView.setAdapter(adapter);
         LocalPathProvider.initialize(getActivity().getContentResolver(), this::getContext);
 
