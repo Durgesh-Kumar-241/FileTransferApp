@@ -97,13 +97,13 @@ public class TaskPerformer extends Thread{
             {
 
                 FileOutputStream fileOutputStream = (FileOutputStream) LocalPathProvider.getOut(sharedItem);
-                CipherInputStream cipherInputStream = Crypto.getDecryptedFile(inputStream);
+                //CipherInputStream cipherInputStream = Crypto.getDecryptedFile(inputStream);
                 //sharedItem.uri = Uri.fromFile()
                 long max = sharedItem.size;
                 long downloaded =0;
                 int read = 0;
                 byte[] buffer=new byte[1024*1000];
-                while ((read = cipherInputStream.read(buffer)) > 0&&!isCancelled) {
+                while ((read = inputStream.read(buffer)) > 0&&!isCancelled) {
 
                     downloaded += read;
                     fileOutputStream.write(buffer,0, read);
@@ -120,7 +120,7 @@ public class TaskPerformer extends Thread{
                 }
 
                 notifyItemChanged();
-                cipherInputStream.close();
+
                 inputStream.close();
                 Log.d(TAG,"Downloaded file completely");
                 //  System.out.println("Received File");
@@ -152,8 +152,8 @@ public class TaskPerformer extends Thread{
             long uploaded =0;
             int read = 0;
             byte[] buffer=new byte[1024*1000];
-            CipherInputStream cipherInputStream = Crypto.getEncryptedFile(inputStream1);
-            while ((read = cipherInputStream.read(buffer)) > 0) {
+            //CipherInputStream cipherInputStream = Crypto.getEncryptedFile(inputStream1);
+            while ((read = inputStream1.read(buffer)) > 0) {
 
                 uploaded += read;
                 outputStream.write(buffer,0, read);
@@ -162,10 +162,8 @@ public class TaskPerformer extends Thread{
                 notifyItemChanged();
             }
             Log.d(TAG,"upload finished");
-            cipherInputStream.close();
+            outputStream.write("\r\n\r\n".getBytes());
             inputStream1.close();
-            outputStream.flush();
-            outputStream.close();
             //outputStream.write("\r\n".getBytes());
 
             String header;
@@ -197,8 +195,6 @@ public class TaskPerformer extends Thread{
             e.printStackTrace();
             sharedItem.shareState=ShareState.FAILED;
             notifyItemChanged();
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
         }
     }
 

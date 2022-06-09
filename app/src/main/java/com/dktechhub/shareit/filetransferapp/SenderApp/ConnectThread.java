@@ -16,11 +16,10 @@ import java.security.NoSuchAlgorithmException;
 public class ConnectThread extends Thread{
     String remoteIP;
     String TAG = "SenderApp TAG";
-    String authKey ="";
+
     boolean cancelled = false;
     ConnecterInterface connecterInterface;
-    String serverPublic ="";
-    String encryptedSecret = "";
+
    public ConnectThread(String remoteIP,ConnecterInterface connecterInterface)
     {
         this.remoteIP = remoteIP;
@@ -60,11 +59,7 @@ public class ConnectThread extends Thread{
             OutputStream outputStream = socket.getOutputStream();
             outputStream.write("CONNECT / HTTP/1.1\r\n".getBytes());
             outputStream.write(("Device: "+SenderApp.deviceName+"\r\n").getBytes());
-            if(encryptedSecret.length()>0)
-            {
-                outputStream.write(("Secret: "+encryptedSecret+"\r\n").getBytes());
-                Log.d(TAG,"Encrypted secr sent:\n"+encryptedSecret);
-            }
+
             outputStream.write("\r\n".getBytes());
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -90,22 +85,6 @@ public class ConnectThread extends Thread{
                 }
             }else if(res.equals("HTTP/1.1 WAIT"))
             {
-                String serverPublic=bufferedReader.readLine();
-                Log.d(TAG,"final: \n"+serverPublic);
-                if(serverPublic.contains(":"))
-                {
-                    serverPublic=serverPublic.substring(serverPublic.indexOf(":")+2);
-                    if(this.serverPublic.length()==0)
-                        this.serverPublic=serverPublic;
-                    try{
-                        if(encryptedSecret.length()==0&&serverPublic.length()>0)
-                            encryptedSecret=Crypto.getEncryptedSecret(serverPublic);
-                    }catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                    Log.d(TAG,"Server Public:\n"+serverPublic);
-                }
                 Thread.sleep(1000);
             }
         }catch (Exception e)

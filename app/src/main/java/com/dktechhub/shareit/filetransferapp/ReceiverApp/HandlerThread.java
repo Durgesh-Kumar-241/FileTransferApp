@@ -45,7 +45,7 @@ public class HandlerThread extends Thread{
     String TAG = "HandlerThread Log";
     private PrintWriter printWriter;
 
-    private RemoreFilesInterface remoreFilesInterface;
+    private final RemoreFilesInterface remoreFilesInterface;
     HandlerThread(Socket socket,HandlerInterface handlerInterface,RemoreFilesInterface remoreFilesInterface)
     {
         this.socket=socket;
@@ -115,12 +115,12 @@ public class HandlerThread extends Thread{
             long max = recyclerViewAdapter.items.get(index).size;
 
             InputStream fileInputStream =  LocalPathProvider.getInputStream(recyclerViewAdapter.items.get(index));
-            CipherInputStream cipherInputStream = Crypto.getEncryptedFile(fileInputStream);
+            //CipherInputStream cipherInputStream = Crypto.getEncryptedFile(fileInputStream);
             outputStream.write("HTTP/1.1 200\r\n\r\n".getBytes());
             long written =0;
             int read =0;
             byte[] bytes = new byte[1024*1000];
-            while ((read=cipherInputStream.read(bytes))>0)
+            while ((read=fileInputStream.read(bytes))>0)
             {
                 written+=read;
                 outputStream.write(bytes,0,read);
@@ -133,12 +133,11 @@ public class HandlerThread extends Thread{
             recyclerViewAdapter.items.get(index).shareState=ShareState.COMPLETED;
             notifyAdapter(index);
             fileInputStream.close();
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException e) {
-            e.printStackTrace();
-            newSimpleResponse(403);
-        }catch (IOException e)
+        } catch (IOException e)
         {
             //respondText(404,"File not found");
+            //recyclerViewAdapter.items.get(index).shareState=ShareState.FAILED;
+            //notifyAdapter(index);
         }
 
 
@@ -187,8 +186,8 @@ public class HandlerThread extends Thread{
             int read =0;
             byte[] bytes = new byte[1024*1000];
             Log.d(TAG,"Started receiving....");
-            CipherInputStream cipherInputStream = Crypto.getDecryptedFile(inputStream);
-            while (written<=max&&(read=cipherInputStream.read(bytes))>0)
+           // CipherInputStream cipherInputStream = Crypto.getDecryptedFile(inputStream);
+            while (written<=max&&(read=inputStream.read(bytes))>0)
             {
                 written+=read;
                 foutputStream.write(bytes,0,read);
@@ -206,17 +205,13 @@ public class HandlerThread extends Thread{
             Log.d(TAG,"completed receiving..");
             outputStream.write("HTTP/1.1 200\r\n\r\n".getBytes());
             outputStream.close();
-            cipherInputStream.close();
             inputStream.close();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             newSimpleResponse(404);
             Log.d(TAG,"file create error");
-        } catch ( NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
-            newSimpleResponse(403);
-        }catch (IOException e)
+        } catch (IOException e)
         {
             e.printStackTrace();
         }
@@ -266,28 +261,13 @@ public class HandlerThread extends Thread{
         }
 
     }
-    boolean isSecretAvailable = false;
+
     private void handleConnectionRequest() {
         int i=handlerInterface.addNewDevice(socket.getInetAddress().getHostAddress(),requestHeaders.get("Device"));
-        if(!isSecretAvailable)
-        {
-            String encrptedSecret = requestHeaders.get("Secret");
-            Log.d(TAG,"Enctrypeted secret received\n"+encrptedSecret);
-            if(encrptedSecret!=null&&encrptedSecret.length()>0)
-            {
-                try {
-                    Crypto.decryptSecretKey(encrptedSecret);
-                    isSecretAvailable = true;
-                    Log.d(TAG,"Obtained secret key");
-                }catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        }
+
         Log.d(TAG,"current status ="+i);
         try{
-            if(i==1&&isSecretAvailable)
+            if(i==1)
             {
                 outputStream.write("HTTP/1.1 OK\r\n".getBytes());
                 outputStream.write(("Device: "+ SenderApp.deviceName+"\r\n\r\n").getBytes());
@@ -297,9 +277,7 @@ public class HandlerThread extends Thread{
             {
                 outputStream.write("HTTP/1.1 UNAUTHORISED\r\n\r\n".getBytes());
             }else {
-                outputStream.write("HTTP/1.1 WAIT\r\n".getBytes());
-                outputStream.write(("Public: "+ Crypto.serverPublic+"\r\n\r\n").getBytes());
-                Log.d(TAG,"Sent server public\n"+Crypto.serverPublic);
+                outputStream.write("HTTP/1.1 WAIT\r\n\r\n".getBytes());
 
             }
             Log.d(TAG,"Responded : "+ i);
