@@ -3,8 +3,7 @@
     <item android:id="@android:id/background">
         <shape>
             <corners android:radius="5dp"/>
-            <gradient android:centerColor="@color/design_default_color_background" android:startColor="@color/design_default_color_on_primary" android:useLevel="true"/>
-            <solid android:color="@color/white"/>
+            <solid android:color="?attr/colorSecondary"/>
         </shape>
     </item>
 
@@ -12,7 +11,7 @@
         <shape>
             <corners android:radius="5dp">
             </corners>
-            <gradient android:endColor="#29B6F6" android:startColor="#FBFBFB"  android:useLevel="true"  android:type="linear"  android:angle="0"/>
-        </shape>
+            <solid android:color="?attr/colorPrimary"/>
+               </shape>
     </item>
 </layer-list>

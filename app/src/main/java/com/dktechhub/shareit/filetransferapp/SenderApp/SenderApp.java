@@ -21,7 +21,7 @@ public class SenderApp {
     private RemoreFilesInterface remoreFilesInterface;
     RemoteObserverThread remoteObserverThread;
     TaskPerformer t;
-    WorkerThread.WorkerInterface workerInterface;
+
     RecyclerViewAdapter recyclerViewAdapter;
     public static String deviceName=Build.DEVICE;
     String remote;

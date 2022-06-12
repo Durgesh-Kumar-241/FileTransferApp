@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.dktechhub.shareit.filetransferapp.R;
@@ -28,12 +30,15 @@ import com.dktechhub.shareit.filetransferapp.SharedItem;
 
 import java.util.ArrayList;
 
-public class TransferScreenFragment extends Fragment implements RemoreFilesInterface{
+public class TransferScreenFragment extends Fragment implements RemoreFilesInterface, LocalStats.LocalStateChangeInterface {
     private final String device;
     RecyclerView recyclerView;
     RecyclerViewAdapter adapter;
     boolean sender;
     String remote;
+    ProgressBar globalProgress;
+    TextView sent,timeLeft,speed;
+
     public TransferScreenFragment(boolean sender, String remote, String device) {
     this.sender=sender;
     this.remote=remote;
@@ -56,6 +61,10 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root= inflater.inflate(R.layout.fragment_transfer_screen, container, false);
+        sent=root.findViewById(R.id.text_sent);
+        speed = root.findViewById(R.id.text_speed);
+        timeLeft = root.findViewById(R.id.textTimeLeft);
+        globalProgress = root.findViewById(R.id.global_pro);
         root.findViewById(R.id.send_file).setOnClickListener(v -> pickFiles());
         ((TextView)root.findViewById(R.id.rem_dev_name)).setText("Connected to "+device);
         recyclerView = root.findViewById(R.id.recyclerView);
@@ -64,7 +73,7 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
         //adapter.setHasStableIds(true);
         recyclerView.setAdapter(adapter);
         LocalPathProvider.initialize(getActivity().getContentResolver(), this::getContext);
-
+        LocalStats.initialize(this);
         if(sender)
         {
             SenderApp instance = SenderApp.getInstance();
@@ -113,24 +122,28 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
         ContentResolver contentResolver = getActivity().getContentResolver();
         ArrayList<SharedItem> arrayList1=new ArrayList<>();
         String id = IDProvider.getNewId();
+        long size=0;
         for(int i=0;i<arrayList.size();i++)
         {
             Cursor cursor = contentResolver.query(arrayList.get(i),null,null,null,null);
             int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
             int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+
             cursor.moveToFirst();
             arrayList1.add(new SharedItem(arrayList.get(i),cursor.getString(nameIndex),cursor.getLong(sizeIndex), contentResolver.getType(arrayList.get(i)),id+i));
+            size+=cursor.getLong(sizeIndex);
             cursor.close();
         }
 
         if(arrayList1.size()>0)
-            updateList(arrayList1);
+            updateList(arrayList1,size);
 
     }
 
-    void updateList(ArrayList<SharedItem> list)
+    void updateList(ArrayList<SharedItem> list,long size)
     {
         adapter.addItems(list);
+        LocalStats.addNewItems(size);
         if(sender)
         {
             SenderApp.getInstance().pushFiles(list);
@@ -139,8 +152,35 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
     }
 
     @Override
-    public void onNewFilesAvailable(ArrayList<SharedItem> sharedItems) {
-        adapter.addItems(sharedItems);
+    public void onNewFilesAvailable(Pair<ArrayList<SharedItem>, Long> pair) {
+        adapter.addItems(pair.first);
+        LocalStats.addNewItems(pair.second);
         Log.d("HandlerThread","update items");
     }
+
+    void updateLocalStats()
+    {
+        globalProgress.setProgress(LocalStats.getProgress());
+        speed.setText("Speed: "+LocalStats.getSpeed());
+        sent.setText("Sent: "+LocalStats.getSent());
+    }
+
+    @Override
+    public void onUpdate() {
+        updateLocalStats();
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalStats.initialize(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalStats.release();
+    }
 }
+

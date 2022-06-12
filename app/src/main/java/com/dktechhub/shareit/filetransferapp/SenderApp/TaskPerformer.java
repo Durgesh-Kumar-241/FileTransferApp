@@ -7,6 +7,7 @@ import com.dktechhub.shareit.filetransferapp.SharedItem;
 import com.dktechhub.shareit.filetransferapp.ui.main.Crypto;
 import com.dktechhub.shareit.filetransferapp.ui.main.ItemStateChangeListener;
 import com.dktechhub.shareit.filetransferapp.ui.main.LocalPathProvider;
+import com.dktechhub.shareit.filetransferapp.ui.main.LocalStats;
 import com.dktechhub.shareit.filetransferapp.ui.main.ShareState;
 
 import java.io.BufferedReader;
@@ -110,7 +111,9 @@ public class TaskPerformer extends Thread{
                     sharedItem.progress=((int)(downloaded*100 / max));
                     //Log.d(TAG,downloaded+"/"+max);
                     notifyItemChanged();
+                    LocalStats.updateProgress(read);
                 }
+                LocalStats.updateProgress(0);
                 if(isCancelled)
                 {
                     sharedItem.shareState=ShareState.CANCELLED;
@@ -160,12 +163,13 @@ public class TaskPerformer extends Thread{
                 sharedItem.progress=((int)(uploaded*100 / max));
                 //Log.d(TAG,uploaded+"/"+max);
                 notifyItemChanged();
+                LocalStats.updateProgress(read);
             }
             Log.d(TAG,"upload finished");
             outputStream.write("\r\n\r\n".getBytes());
             inputStream1.close();
-            //outputStream.write("\r\n".getBytes());
-
+            s.shutdownOutput();
+            LocalStats.updateProgress(0);
             String header;
             int temp;
             header = bufferedReader.readLine();

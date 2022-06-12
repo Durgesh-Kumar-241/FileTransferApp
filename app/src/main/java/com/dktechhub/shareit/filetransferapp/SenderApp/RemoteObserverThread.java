@@ -1,5 +1,7 @@
 package com.dktechhub.shareit.filetransferapp.SenderApp;
 
+import androidx.core.util.Pair;
+
 import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
 import com.dktechhub.shareit.filetransferapp.SharedItem;
 import com.dktechhub.shareit.filetransferapp.ui.main.FileConverter;
@@ -72,8 +74,8 @@ public class RemoteObserverThread extends Thread{
                 sb.append(header);
             }
             JSONObject js = new JSONObject(sb.toString());
-            ArrayList<SharedItem> arrayList = FileConverter.fromJson(js);
-            if(arrayList.size()>0)
+            Pair<ArrayList<SharedItem>, Long> arrayList = FileConverter.fromJson(js);
+            if(arrayList.first.size()>0)
                 publishNewItems(arrayList);
             toPush.clear();
             outputStream.close();
@@ -90,14 +92,14 @@ public class RemoteObserverThread extends Thread{
     public void push(ArrayList<SharedItem> list) {
         toPush.addAll(list);
     }
-    void publishNewItems(ArrayList<SharedItem> a)
+    void publishNewItems(Pair<ArrayList<SharedItem>, Long> pair)
     {
         if(remoreFilesInterface!=null)
         {
             BackgroudToUIRunner.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    remoreFilesInterface.onNewFilesAvailable(a);
+                    remoreFilesInterface.onNewFilesAvailable(pair);
                 }
             });
         }

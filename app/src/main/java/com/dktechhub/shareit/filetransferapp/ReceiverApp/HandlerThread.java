@@ -2,12 +2,15 @@ package com.dktechhub.shareit.filetransferapp.ReceiverApp;
 
 import android.util.Log;
 
+import androidx.core.util.Pair;
+
 import com.dktechhub.shareit.filetransferapp.BackgroudToUIRunner;
 import com.dktechhub.shareit.filetransferapp.SenderApp.SenderApp;
 import com.dktechhub.shareit.filetransferapp.SharedItem;
 import com.dktechhub.shareit.filetransferapp.ui.main.Crypto;
 import com.dktechhub.shareit.filetransferapp.ui.main.FileConverter;
 import com.dktechhub.shareit.filetransferapp.ui.main.LocalPathProvider;
+import com.dktechhub.shareit.filetransferapp.ui.main.LocalStats;
 import com.dktechhub.shareit.filetransferapp.ui.main.RecyclerViewAdapter;
 import com.dktechhub.shareit.filetransferapp.ui.main.RemoreFilesInterface;
 import com.dktechhub.shareit.filetransferapp.ui.main.ShareState;
@@ -126,8 +129,11 @@ public class HandlerThread extends Thread{
                 outputStream.write(bytes,0,read);
                 recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));;
                 notifyAdapter(index);
-                //Log.d(TAG,"Download returned:"+written+"/"+max);
+                LocalStats.updateProgress(read);
+                Log.d(TAG,"Download returned:"+written+"/"+max);
             }
+
+            LocalStats.updateProgress(0);
             Log.d(TAG,"Returned complete");
 
             recyclerViewAdapter.items.get(index).shareState=ShareState.COMPLETED;
@@ -187,15 +193,17 @@ public class HandlerThread extends Thread{
             byte[] bytes = new byte[1024*1000];
             Log.d(TAG,"Started receiving....");
            // CipherInputStream cipherInputStream = Crypto.getDecryptedFile(inputStream);
-            while (written<=max&&(read=inputStream.read(bytes))>0)
+            while ((read=inputStream.read(bytes))>0)
             {
                 written+=read;
                 foutputStream.write(bytes,0,read);
                 recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));;
                 notifyAdapter(index);
-                //Log.d(TAG,"File received"+written+"/"+max);
-            }
 
+                LocalStats.updateProgress(read);
+                Log.d(TAG,"File received"+written+"/"+max);
+            }
+            LocalStats.updateProgress(0);
             Log.d(TAG,"completed receiving..");
             foutputStream.flush();
             foutputStream.close();
@@ -246,9 +254,9 @@ public class HandlerThread extends Thread{
             outputStream.write("\r\n".getBytes());
             //Log.d(TAG,"file pushed");
             JSONObject js = new JSONObject(sb.toString());
-            ArrayList<SharedItem> arrayList = FileConverter.fromJson(js);
+            Pair<ArrayList<SharedItem>, Long> arrayList = FileConverter.fromJson(js);
             //Log.d("HandlerThread",arrayList.toString());
-            if(arrayList.size()>0)
+            if(arrayList.first.size()>0)
             publishNewItems(arrayList);
             handlerInterface.getItemsList().clear();
             outputStream.close();
@@ -322,22 +330,20 @@ public class HandlerThread extends Thread{
         }
     }
     public interface HandlerInterface{
-        //void onNewConnectionRequest(HandlerThread handlerThread);
-        //Context getContext();
         ArrayList<SharedItem> getItemsList();
         RecyclerViewAdapter getAdapter();
         int addNewDevice(String remote, String device);
         void onConnectionSuccess(String device);
     }
 
-    void publishNewItems(ArrayList<SharedItem> sharedItems)
+    void publishNewItems(Pair<ArrayList<SharedItem>, Long> pair)
     {
         if(remoreFilesInterface!=null)
         {
             BackgroudToUIRunner.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    remoreFilesInterface.onNewFilesAvailable(sharedItems);
+                    remoreFilesInterface.onNewFilesAvailable(pair);
                 }
             });
         }else {

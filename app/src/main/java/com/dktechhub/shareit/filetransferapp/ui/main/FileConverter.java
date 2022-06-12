@@ -1,5 +1,7 @@
 package com.dktechhub.shareit.filetransferapp.ui.main;
 
+import androidx.core.util.Pair;
+
 import com.dktechhub.shareit.filetransferapp.SharedItem;
 
 import org.json.JSONArray;
@@ -25,12 +27,14 @@ public class FileConverter {
         return main;
     }
 
-    public static ArrayList<SharedItem> fromJson(JSONObject jsonObject) throws JSONException {   ArrayList<SharedItem> arrayList = new ArrayList<>();
+    public static Pair<ArrayList<SharedItem>,Long> fromJson(JSONObject jsonObject) throws JSONException {   ArrayList<SharedItem> arrayList = new ArrayList<>();
         JSONArray jsonArray = jsonObject.getJSONArray("list");
+        long size =0;
         for(int i=0;i< jsonArray.length();i++)
         {   JSONObject jsonObject1 = jsonArray.getJSONObject(i);
             arrayList.add(new SharedItem(jsonObject1.getString("name"),jsonObject1.getLong("size"),jsonObject1.getString("type"),jsonObject1.getString("id")));
+            size+=jsonObject1.getLong("size");
         }
-        return arrayList;
+        return new Pair<>(arrayList,size);
     }
 }
