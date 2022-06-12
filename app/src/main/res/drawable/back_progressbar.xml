@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
-        <shape>
+        <shape android:shape="rectangle">
             <corners android:radius="5dp"/>
-            <solid android:color="?attr/colorSecondary"/>
+            <solid android:color="@android:color/transparent"/>
         </shape>
     </item>
 
     <item android:id="@android:id/progress">
-        <shape>
-            <corners android:radius="5dp">
-            </corners>
-            <solid android:color="?attr/colorPrimary"/>
-               </shape>
+        <scale android:scaleWidth="100%">
+            <shape android:shape="rectangle" android:useLevel="true">
+                <corners android:radius="5dp">
+                </corners>
+                <gradient android:startColor="#2629B6F6" android:endColor="#D829B6F6"/>
+            </shape>
+        </scale>
     </item>
 </layer-list>
