@@ -201,16 +201,16 @@ public class HandlerThread extends Thread{
                 notifyAdapter(index);
 
                 LocalStats.updateProgress(read);
-                Log.d(TAG,"File received"+written+"/"+max);
+                //Log.d(TAG,"File received"+written+"/"+max);
             }
             LocalStats.updateProgress(0);
-            Log.d(TAG,"completed receiving..");
+            //Log.d(TAG,"completed receiving..");
             foutputStream.flush();
             foutputStream.close();
 
             recyclerViewAdapter.items.get(index).shareState=ShareState.COMPLETED;
             notifyAdapter(index);
-            Log.d(TAG,"completed receiving..");
+            //Log.d(TAG,"completed receiving..");
             outputStream.write("HTTP/1.1 200\r\n\r\n".getBytes());
             outputStream.close();
             inputStream.close();

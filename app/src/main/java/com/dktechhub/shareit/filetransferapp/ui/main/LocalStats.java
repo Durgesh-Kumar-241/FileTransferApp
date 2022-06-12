@@ -8,7 +8,8 @@ public class LocalStats {
      static long total=0;
      static long sent=0;
      static int progress=0;
-     static String speed="";
+     static String speed="0 MB";
+     static String timeLeft = "0 Sec.";
     static long prevTime=0;
 
    public static void addNewItems(long l)
@@ -24,6 +25,14 @@ public class LocalStats {
         long sp = 0;
         if(sec!=0)
         sp = 1000*(sentNew)/sec;
+        long left =Integer.MAX_VALUE;
+        if(sp!=0)
+        left = (total-sent)/sp;
+        else{
+            if(total-sent==0)
+                left=0;
+        }
+        timeLeft = getTime((int) left);
         speed=SharedItem.getSize(sp)+"/Sec";
         prevTime=System.currentTimeMillis();
         publish();
@@ -49,6 +58,11 @@ public class LocalStats {
    {
        localStateChangeInterface =mlocalStateChangeInterface;
    }
+
+    public static String getTimeLeft() {
+        return timeLeft;
+    }
+
     public static void release()
     {
         localStateChangeInterface=null;
@@ -69,5 +83,19 @@ public class LocalStats {
 
     public interface LocalStateChangeInterface{
        void onUpdate();
+    }
+
+    static String getTime(int sec)
+    {
+        String str;
+        int MIN =60;
+        int HRS = 3600;
+
+        if(sec>=HRS)
+            str=String.format("%.2f Hrs",(float)sec/HRS);
+        else if(sec>=MIN)
+            str=String.format("%.2f Min.",(float)sec/MIN);
+        else str=String.format("%d", sec);
+        return str;
     }
 }

@@ -161,6 +161,7 @@ public class TransferScreenFragment extends Fragment implements RemoreFilesInter
     void updateLocalStats()
     {
         globalProgress.setProgress(LocalStats.getProgress());
+        timeLeft.setText(LocalStats.getTimeLeft()+" left");
         speed.setText("Speed: "+LocalStats.getSpeed());
         sent.setText("Sent: "+LocalStats.getSent());
     }

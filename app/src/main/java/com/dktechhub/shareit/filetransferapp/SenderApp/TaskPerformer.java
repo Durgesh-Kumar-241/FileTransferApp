@@ -113,7 +113,7 @@ public class TaskPerformer extends Thread{
                     notifyItemChanged();
                     LocalStats.updateProgress(read);
                 }
-                LocalStats.updateProgress(0);
+                ;
                 if(isCancelled)
                 {
                     sharedItem.shareState=ShareState.CANCELLED;
@@ -130,6 +130,7 @@ public class TaskPerformer extends Thread{
                 fileOutputStream.flush();
                 fileOutputStream.close();
                 outputStream.close();
+                LocalStats.updateProgress(0);
             }else throw new Exception("Invalid request");
 
 
