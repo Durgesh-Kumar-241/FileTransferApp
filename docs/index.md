@@ -6,20 +6,9 @@ You can use [install the app](https://github.com/Durgesh-Kumar-241/FileTransferA
 We developers of this app ensure that ***No data is collected from useres devices*** and this app is completely safe for use.
 
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+### Usage:
+This app is usefull for file transfer of any type between two device that are connected to same LAN.
+Sending device must choose ***Send*** and Receiving device must choose ***Receive***
+Then Receiver device shows its local ip address that is entered in sending device. after that click on connect button and Click on ***allow*** into receiver device.
+Once connection is established, both devices can ***send and receive all files of any size without internet***. and file transfer speed is fast upto 7Mb/s.
 
