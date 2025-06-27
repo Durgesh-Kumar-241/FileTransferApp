@@ -51,7 +51,7 @@ public class WorkerThread extends Thread{
                     }else {
                         Log.d(TAG,"completing task");
                         completeTask(queue.remove());
-                    };
+                    }
                 }catch (Exception e2)
                 {
                     e2.printStackTrace();

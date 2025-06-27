@@ -124,7 +124,7 @@ public class HandlerThread extends Thread{
             {
                 written+=read;
                 outputStream.write(bytes,0,read);
-                recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));;
+                recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));
                 notifyAdapter(index);
                 //Log.d(TAG,"Download returned:"+written+"/"+max);
             }
@@ -191,7 +191,7 @@ public class HandlerThread extends Thread{
             {
                 written+=read;
                 foutputStream.write(bytes,0,read);
-                recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));;
+                recyclerViewAdapter.items.get(index).progress= ((int)(written*100 / max));
                 notifyAdapter(index);
                 //Log.d(TAG,"File received"+written+"/"+max);
             }

@@ -21,9 +21,9 @@ public class ReceiverApp {
 
     ContentResolver contentResolver;
     Context context;
-    private ArrayList<String> allowedDevices=new ArrayList<>();
-    private ArrayList<String> deninedDevice = new ArrayList<>();
-    private ArrayList<String> pending=new ArrayList<>();
+    private final ArrayList<String> allowedDevices=new ArrayList<>();
+    private final ArrayList<String> deninedDevice = new ArrayList<>();
+    private final ArrayList<String> pending=new ArrayList<>();
     TransferStateInterface transferStateInterface;
     RemoreFilesInterface remoreFilesInterface;
     ArrayList<SharedItem> toPush = new ArrayList<>();

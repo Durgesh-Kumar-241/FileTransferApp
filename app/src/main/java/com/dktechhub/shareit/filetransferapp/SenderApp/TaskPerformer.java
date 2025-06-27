@@ -76,7 +76,7 @@ public class TaskPerformer extends Thread{
             OutputStream outputStream = s.getOutputStream();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             outputStream.write(("GET /item?id="+sharedItem.id+" HTTP/1.1\r\n").getBytes());
-            outputStream.write(("Content-Length: "+String.valueOf(sharedItem.size)+"\r\n").getBytes());
+            outputStream.write(("Content-Length: "+ sharedItem.size +"\r\n").getBytes());
             outputStream.write("\r\n".getBytes());
             //String res = bufferedReader.readLine();
             String header;
